@@ -1,20 +1,19 @@
 import requests
 import time
+import json
 import csv
 
 
 base_url = 'https://app.dimensions.ai/api/'
-affils = '["University of Rochester", "University of Rochester Medical Center", "Strong Memorial Hospital", "Highland Hospital"]'
-CTSI_grants = ["UL1TR002001","KL2TR001999", "TL1TR002000", "UL1TR000042", "KL2TR000095", "TL1TR000096"]
+author_affils = '["University of Rochester", "University of Rochester Medical Center", "Strong Memorial Hospital", "Highland Hospital"]'
+grants = ["UL1TR002001","KL2TR001999", "TL1TR002000", "UL1TR000042", "KL2TR000095", "TL1TR000096"]
 year_range = '[2012:2016]'
 
 
 def initialize_session():
 
-	login = {
-		'username': 'ENTER_YOUR_DIMENSIONS_API_EMAIL_HERE',
-		'password': 'ENTER_YOUR_DIMENSIONS_API_PASSWORD_HERE'
-	}
+	with open('login.txt', 'r') as login:
+		login = json.load(login)
 
 	print('\nInitializing session...\n')
 
@@ -31,7 +30,7 @@ def initialize_session():
 
 def title_count(header, author):
 
-	query = 'search publications in full_data for "\\"{}\\"" where year in {} and type="article" and author_affiliations in {} return publications [doi]'.format(author, year_range, affils)
+	query = 'search publications in full_data for "\\"{}\\"" where year in {} and type="article" and author_affiliations in {} return publications [doi]'.format(author, year_range, author_affils)
 
 	try:
 		response = response.json()
@@ -47,7 +46,7 @@ def title_count(header, author):
 
 def query_author(header, skip, author):
 
-	query = 'search publications in full_data for "\\"{}\\"" where year in {} and type="article" and author_affiliations in {} return publications [title+author_affiliations+journal+volume+issue+pages+date+doi+pmid+pmcid+supporting_grant_ids] limit 1000 skip {}'.format(author, year_range, affils, skip)
+	query = 'search publications in full_data for "\\"{}\\"" where year in {} and type="article" and author_affiliations in {} return publications [title+author_affiliations+journal+volume+issue+pages+date+doi+pmid+pmcid+supporting_grant_ids] limit 1000 skip {}'.format(author, year_range, author_affils, skip)
 
 	try:
 		response = response.json()
@@ -108,7 +107,7 @@ def get_papers():
 					for grant_id in grant_ids:
 						grant_nr = query_grant(header, grant_id)
 						print(current_author, grant_nr)
-						if grant_nr in CTSI_grants:
+						if grant_nr in grants:
 							print(f'Paper from {current_author} was supported by CTSI grant nr {grant_nr}')
 							try:
 								title = result['title']
